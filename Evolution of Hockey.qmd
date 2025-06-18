@@ -1,0 +1,525 @@
+---
+title: "Evolution of Hockey from 2010-2025"
+subtitle: "Mark Yan"
+
+format: 
+  pdf:
+    embed-resources: true
+    include-in-header: float.tex
+    indent: true
+---
+
+```{r, message = FALSE, echo = FALSE}
+library(tidyverse)
+library(mosaic)
+library(corrplot)
+library(rpart)
+library(rattle)
+library(randomForest)
+library(kableExtra)
+library(Metrics)
+library(factoextra)
+```
+
+```{r, message=FALSE, echo=FALSE}
+season_2010 <- read_csv("team_data_2010_season.csv")
+season_2011 <- read_csv("team_data_2011_season.csv")
+season_2012 <- read_csv("team_data_2012_season.csv")
+season_2014 <- read_csv("team_data_2014_season.csv")
+season_2015 <- read_csv("team_data_2015_season.csv")
+season_2016 <- read_csv("team_data_2016_season.csv")
+season_2017 <- read_csv("team_data_2017_season.csv")
+season_2018 <- read_csv("team_data_2018_season.csv")
+season_2019 <- read_csv("team_data_2019_season.csv")
+season_2020 <- read_csv("team_data_2020_season.csv")
+season_2022 <- read_csv("team_data_2022_season.csv")
+season_2023 <- read_csv("team_data_2023.csv")
+season_2024 <- read_csv("team_data_2024_season.csv")
+season_2025 <- read_csv("team_data_2025_season.csv")
+
+
+season_2010$team...4 <- NULL
+season_2010$name <- NULL
+season_2010$position <- NULL
+
+
+season_2011$team...4 <- NULL
+season_2011$name <- NULL
+season_2011$position <- NULL
+
+
+season_2012$team...4 <- NULL
+season_2012$name <- NULL
+season_2012$position <- NULL
+
+season_2014$team...4 <- NULL
+season_2014$name <- NULL
+season_2014$position <- NULL
+
+
+
+season_2015$team...4 <- NULL
+season_2015$name <- NULL
+season_2015$position <- NULL
+
+
+season_2016$team...4 <- NULL
+season_2016$name <- NULL
+season_2016$position <- NULL
+
+season_2017$team...4 <- NULL
+season_2017$name <- NULL
+season_2017$position <- NULL
+
+season_2018$team...4 <- NULL
+season_2018$name <- NULL
+season_2018$position <- NULL
+
+season_2019$team...4 <- NULL
+season_2019$name <- NULL
+season_2019$position <- NULL
+
+
+season_2020$team...4 <- NULL
+season_2020$name <- NULL
+season_2020$position <- NULL
+
+season_2022$team...4 <- NULL
+season_2022$name <- NULL
+season_2022$position <- NULL
+
+season_2023$team...4 <- NULL
+season_2023$name <- NULL
+season_2023$position <- NULL
+
+season_2024$team...4 <- NULL
+season_2024$name <- NULL
+season_2024$position <- NULL
+
+season_2025$team...4 <- NULL
+season_2025$name <- NULL
+season_2025$position <- NULL
+
+
+hockey_data <- rbind(season_2010, season_2011)
+hockey_data <- rbind(hockey_data, season_2012)
+hockey_data <- rbind(hockey_data, season_2014)
+hockey_data <- rbind(hockey_data, season_2015)
+hockey_data <- rbind(hockey_data, season_2016)
+hockey_data <- rbind(hockey_data, season_2017)
+hockey_data <- rbind(hockey_data, season_2018)
+colnames(season_2019) <- colnames(hockey_data)
+hockey_data <- rbind(hockey_data, season_2019)
+hockey_data <- rbind(hockey_data, season_2020)
+hockey_data <- rbind(hockey_data, season_2022)
+colnames(season_2023) <- colnames(hockey_data)
+hockey_data <- rbind(hockey_data, season_2023)
+hockey_data <- rbind(hockey_data, season_2024)
+hockey_data <- rbind(hockey_data, season_2025)
+
+
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+data5v5 <- hockey_data %>% 
+  filter(situation == "5on5")
+
+even_2010 <- data5v5 %>% 
+  filter(season == "2009")
+
+even_2011 <- data5v5 %>% 
+  filter(season == "2010")
+
+even_2012 <- data5v5 %>% 
+  filter(season == "2011")
+
+
+even_2014 <- data5v5 %>% 
+  filter(season == "2013")
+
+
+even_2015 <- data5v5 %>% 
+  filter(season == "2014")
+
+
+even_2016 <- data5v5 %>% 
+  filter(season == "2015")
+
+
+even_2017 <- data5v5 %>% 
+  filter(season == "2016")
+
+
+even_2018 <- data5v5 %>% 
+  filter(season == "2017")
+
+
+even_2019 <- data5v5 %>% 
+  filter(season == "2018")
+
+
+even_2020 <- data5v5 %>% 
+  filter(season == "2019")
+
+even_2022 <- data5v5 %>% 
+  filter(season == "2021")
+
+
+even_2023 <- data5v5 %>% 
+  filter(season == "2022")
+
+
+even_2024 <- data5v5 %>% 
+  filter(season == "2023")
+
+even_2025 <- data5v5 %>% 
+  filter(season == "2024")
+
+
+hockey_data$reboundGoalPercentage <- (hockey_data$reboundGoalsFor/hockey_data$goalsFor) * 100
+
+data5v5$reboundGoalPercentage <- (data5v5$reboundGoalsFor/data5v5$goalsFor) * 100
+
+
+data5v5$xGoalsDifference <- data5v5$xGoalsFor - data5v5$xGoalsAgainst
+
+combined_situations <- hockey_data %>% 
+  filter(situation == "all")
+
+combined_situations$save_percentage <- 100 -  ((combined_situations$goalsAgainst/combined_situations$shotsOnGoalAgainst) * 100)
+
+combined_situations$difference <- combined_situations$xGoalsAgainst - combined_situations$goalsAgainst
+
+
+
+```
+
+## Introduction
+
+Over the past few years, there are many media members, former players, and current players that have raved over the amount of skill that is in the NHL right now. Well, what has changed over the past decade? This paper seeks to explain how the game has evolved in terms of how teams have approached the game, how offense has changed, and other aspects of the game that have evolved. It also seeks to explain why hockey media members and former players believe that the game has never been in a better spot.
+
+One known factor that has played a role in the evolution of hockey is the evolution of equipment. Skates are lighter, sticks are lighter and more flexible, and goalie pads are much lighter. Inevitably, these innovations in hockey equipment lead to a faster game. According to the Wilkes-Barre/Scranton Penguins, the AHL affiliate of the NHL's Pittsburgh Penguins, equipment has evolved from the use of leather, to fiberglass, to now carbon fiber technology. All these innovations have made sticks lighter, easier to use, and more bend to them without compromising the structural integrity of the hockey stick (W.B.S Penguins, 2024). Another factor that has changed the game of hockey is the use of analytics and data. In an article written by the Wilkes-Barre/Scranton Penguins, the use of data in hockey has been used to identify trends and patterns of teams and players, player performance and development, and utilizing data to make real-time adjustments during games (W.B.S Penguins, 2024). With the evolution in data, it has allowed NHL teams and their affiliates to optimize player personnel, identify talent, and game management, which have all contributed to a better product on the ice.
+
+Another factor that has played a role in the evolution of hockey is that players are now taking on more responsibility on the ice. According to Chris Bouthillier, writer for Bleacher Report, he uses defensemen as an example of how the game has evolved. Defensemen were tasked to "stay at home" and often contributed little offensively. Now, defensemen are expected to contribute offensively by moving the puck forward as well as hold their own defensively. Bouthillier also states that the parity in the league as he believes that teams are more even than ever before to which he believes that dynasties like the 1980s Edmonton Oilers and the 1970s New York Islanders will be very difficult to replicate. He believes the parity stems from the infusion of skill in the game, players being stronger, and equipment changes (Bouthillier, 2018). This article confirms the general belief that the game has never been in a better spot.
+
+The NHL has also adjusted its rulebook that better caters to offense in the NHL. One example was the introduction of 3v3 overtime in the regular season before the 2015-2016 season. By cutting down the number of players that shared the ice, there is more space for NHL players to show off their skill and speed, which encourages offense. Even though the rule only applies to the 5-minute overtime period in the regular season, it symbolized the NHL's intention for more offense. However, the big change that favored offense was altering of the offside rule before the 2021 season. Before, players had to have their skate on the ice to be deemed onside, which may hinder a player's speed entering the zone. The rule change states that the skate does not have to touch the ice to be considered "onside," which removes possible hindrances created by the old rule, which allows players to enter the zone with speed because they don't have to think about having their skate on the ice. Entering the zone with more speed encourages offense because it makes defense more difficult if the player is entering with more speed.
+
+The purpose of this question is to observe changes in the game of hockey by utilizing different figures showing changes in offensive metrics, defensive metrics, goaltending, and other numbers that reflect team play styles like hits, faceoffs, puck possession, and other numbers. Also, this paper will seek to potentially explain future trends in the game's evolution.
+
+## Methods
+
+One website that has provided freelance users to use their data set is moneypuck.com, which has a record of advanced statistics from the 2009-2010 season to the 2024-2025 season. For the sake of consistency in this study, the data for the 2012-2013 season and the 2021 season have been excluded from the data set. The 2012-2013 season consisted of 48 regular season games because of the NHL lockout, and the 2020-2021 season was only 56 games due to the lingering effects of the COVID-19 pandemic. Those two seasons were deemed too incomplete to include in the data. The data set consists of 2155 observations with 107 variables. Each observation consists of the team's performance, the season played, and other variables like their accumulated expected goals per game, high danger goals for, high danger shots for, penalty minutes, penalties taken, hits, and other numbers. I've also added a couple variables like team save percentage, difference in expected goals against and actual goals conceded, and percent of goals scored that are rebound goals. The season column consists of the year when the season started, not when it finished. For example, data from the 2024-2025 season will have 2024 as the year.
+
+This paper will mostly utilize what teams do 5 on 5 for consistency reasons. When data is pulled from other situations such as power play numbers or penalty kill numbers, that will be mentioned before discussing the results. The data set also includes the 2019-2020 season, which was an incomplete season caused by the COVID-19 pandemic, but given that most teams had played around 70 games by the time the season paused, the amount of games played are deemed sufficient enough to utilize that season's data in the data set. The data was collected from every game played that season and using moneypuck.com's algorithms and formulas for advanced metrics and percentages.
+
+## How has Offense Changed in the NHL?
+
+\noindent This question will be answered using a series of figures showing the change of offensive metrics like expected goals, high-danger shots for, and shots on goal, using the mean number of expected goals, high-danger shots for, and shots on goal per season. For the sake of consistency, only numbers generated at even strength are included.
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-xg
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line plot showing the changes in expected goals for over time. From the 2009-2010 season up until the 2015-2016 season, the mean expected goals for remained fairly level. But from the 2016-2017 season to the 2024-2025 season, there is a massive uptick in expected goals for. The dip for the 2019-2020 season can be explained by the fact that not every team played the same amount of games because of the season being paused due to the COVID-19 pandemic. To summarize, teams are getting better at generating more offense at even strength. 
+
+xg_means <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(xGoalsFor, na.rm = TRUE))
+
+xg_means %>% 
+  ggplot(aes(x = season, y = mean_value)) + geom_line() + geom_point() + labs(title = "Mean Expected Goals For at Even Strength", subtitle = "by Season", x = "Season", y = "Expected Goals For")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-high-danger
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line plot showing the mean high danger shots by season. Like the expected goals figure, teams have figured out how to get players into dangerous positions to score as evidenced by the uptick in mean high danger shots. The graph follows a similar pattern as the expected goals graph as the uptick takes place in the 2022-2023 season, suggesting that teams are finding themselves in more threatening positions to score. 
+
+
+
+high_danger <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(highDangerShotsFor))
+
+
+ggplot(data = high_danger, aes(x = season, y = mean_value)) + geom_line() + geom_point() + labs(title = "Mean High Danger Shots For at Even Strength", subtitle = "by Season", x = "Season", y = "High Danger Shots For")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-shots
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line chart showing the changes in the mean shot attempts taken by teams per season. Since the 2009-2010 season, teams have steadily shot the puck more often. Despite an initial drop in shot attempts in the 2021-2022 season, the upward trend has continued beyond that season, showing that teams are continuing to shoot the puck more. 
+
+
+shots <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(shotAttemptsFor))
+
+
+ggplot(data = shots, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Mean Shot Attempts at Even Strength", subtitle = "by Season", x = "Season", y = "Shot Attempts")
+
+```
+
+```{r, message = FALSE, echo = FALSE}
+#| label: fig-shots-on-goal
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the changes in mean shots on target by season. From the 2009-2010 season to the 2021-2022 season, there was a positive trend in shots on target. Since then however, the number of shots on goal have progressively decreased to its lowest mean total in this past season. 
+
+
+shots_target <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(shotsOnGoalFor))
+
+ggplot(data = shots_target, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Shots on Goal for at Even Strength", subtitle = "by Season", x = "Season", y = "Shots on Goal")
+
+```
+
+\noindent Expected goals were used rather than actual goals scored because expected goals are a better indicator of how teams can generate offense. Expected goals counteract other variables like overperformance and puck luck. Teams often overperform their expected goal numbers because of how skilled the players are. Both @fig-xg and @fig-high-danger suggests that teams have been able to generate more offense over time and find themselves in more threatening positions to score. @fig-shots suggests that overall, there has been a positive trend in terms of the number of shot attempts. The increase in shot attempts might suggest that teams prioritize shot volume over quality of shot, or players have become so much more skilled to the point where they find themselves in a position to shot the puck more often. Despite the increase in shot attempts, @fig-shots-on-goal reveals that there have been less shots on target in recent seasons, which suggests that even though teams have had more opportunities to shoot the puck, less of those shots have been on target. This might mean that even though players find themselves in a position to shoot the puck more frequently, the decrease in the mean shots on target might suggest that players may be trying too hard to find the perfect placement on their shot, which might lead to them missing the net more often.
+
+## Has Defending Become More Difficult?
+
+\noindent This question will be answered using figures showing the change in mean defensive metrics such as expected goals allowed, high danger shots allowed, giveaways, and penalties taken. Like the previous question, this will only include numbers at even strength.
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-xg-allowed
+#| fig-cap-location: bottom
+#| fig-pos: H
+#| fig-cap: This is a line graph showing the mean expected goals against by season. Before the 2019-2020 season, teams progressively got worse at defending, a trend that continued after the pandemic-affected 2021 season with teams conceding around 170 expected goals over 82 games. However, teams have slightly improved defensively with the league average dropping after the 2022-2023 season. 
+
+
+xg_allowed <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(xGoalsAgainst))
+
+
+ggplot(data = xg_allowed, aes(x = season, y = mean_value)) + geom_line() + geom_point() + labs(title = "Expected Goals Against at Even Strength", subtitle = "by Season", x = "Season", y = "Expected Goals Against")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-high-danger-against
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the mean high danger shots against by season. This follows a similar pattern as teams before the pandemic-affected 2019-2020 season have progressively conceded more high-danger shots, which continued beyond the pandemic-affected seasons as the mean number of high danger shots conceded has never been higher. 
+
+
+high_danger_against <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(highDangerShotsAgainst))
+
+ggplot(data = high_danger_against, aes(x = season, y = mean_value)) + geom_line() + geom_point() + labs(title = "High Danger Shots Against at Even Strength", subtitle = "by Season", x = "Season", y = "High Danger Shots Against")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-penalties
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the mean number of penalties taken at even strength by season. Even though offense has exploded over the past few seasons, the number of penalties taken by teams has progressively decreased from the 2009-2010 season to now. 
+
+
+penalties <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(penaltiesAgainst))
+
+ggplot(data = penalties, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Penalties Taken at Even Strength", subtitle = "by Season", x = "Season", y = "Penalties Taken")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-giveaways
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph for the mean number of defensive zone giveaways. Before the pandemic-affected 2019-2020 season, there was a quick progression in the number of giveaways a team had, but it decreased again before this recent season where there was a drastic spike in giveaways in this past regular season. Overall, the number of defensive zone giveaways have relatively been unchanged over time. 
+
+
+
+giveaways <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(dZoneGiveawaysFor))
+
+ggplot(data = giveaways, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Defensive Zone Giveaways at Even Strength", subtitle = "by Season", x = "Season", y = "Giveaways")
+
+```
+
+\noindent Again, expected goals were used to counteract other variables such as goalie performance and puck luck. Both @fig-xg-allowed and @fig-high-danger-against suggests that it's become harder to defend in recent seasons explained by the surge in both opponent expected goals and opponent high-danger shot totals after the pandemic-affected 2019-2020 season. However, despite the uptick in both totals, @fig-penalties suggests that the spike in offense hasn't affected the team's discipline as much given the overall decrease in the number of penalties taken from the 2009-2010 season to now. In @fig-giveaways, the teams' discipline in the defensive zone hasn't been affected by the uptick in offense, but the drastic increase in defensive zone giveaways in this past season suggest that either teams are taking more risks in their own zone, or their giveaways are caused by pressure from their opponents.
+
+## How has the Spike in Offense Affected Goaltending?
+
+\noindent In today's game, the number of "elite" goaltenders are very few. The last goalie to win the MVP in the NHL was Carey Price in 2015. Despite the sparse number of "elite" goaltenders in today's NHL, media members still believe that good goaltending is absolutely necessary for a team to have success. So, this question will observe changes in goaltending stats like save percentage, and indirect goaltending numbers like the difference in expected goals against and actual goals against,
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-save-percentage
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a chart showing the league average for save percentage by season in all situations. From the 2009-2010 season to the 2016-2017 season, the league-wide average save percentage hovered around 91%. Since then however, there has been a continuous decrease in the average save percentage to an extreme low in this recent season, with the average save percentage hovering around 89.5%. This might suggest that goalies might not be able to win games on their own due to the league-wide uptick in offense, or goalies as a whole have regressed in terms of skill. 
+
+save_percentage <- combined_situations %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(save_percentage))
+
+
+ggplot(data = save_percentage, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Mean Save Percentage (All Situations)", subtitle = "by Season", x = "Season", y = "Save Percentage")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-difference
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line chart showing the average difference between expected goals against and acutal goals against. A positive number means that you were supposed to allow more goals than you actually conceded, which can mean that your goalie bailed your team out often, the team had good puck luck, or your opponents were less clinical offensively. A negative number means that you were supposed to concede less than the actual total, which might suggest that your goalie gave away a few goals, bad puck luck, or the opposing teams were more clinical offensively. From the 2014-2015 season to the 2016-2017 season, teams typically conceded less than they should have conceded, which might mean that goalies often bailed teams out. However, the mean difference was negative between the 2017-2018 season and the 2021-2022 seasons, which might suggest the opposite, but in this recent season, the mean difference between expected goals and actual goals was at its highest, around 7. 
+
+
+
+difference <- combined_situations %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(difference))
+
+
+ggplot(data = difference, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Mean Difference of Actual Goals and Expected Goals", subtitle = "by Season", x = "Season", y = "Average Difference")
+
+```
+
+\noindent In terms of save percentage, having a 91% save percentage is typically considered very good. However, in @fig-save-percentage, the mean save percentage has regressed from around 91% to around 89% in the 2024-2025 season. The regression in mean might suggest two things. That goalies have regressed in terms of skill, or that players have become so skilled that goaltending in general has become more difficult. One thing that is clear however, it's much more difficult for goalies to bail teams out now. @fig-difference is an indirect indicator of goalies. The difference in expected goals against and actual goals allowed is more of an indicator of team defense that relies on many factors. However, during the same period where the mean goalie save percentage was around 91%, teams typically got bailed out by puck luck or goaltending evident by the fact that teams tended to concede less than their expected goal total. However, teams started to allow more than their expected goals against total, a trend that continued until the 2022-2023 season. Since then, teams have conceded less than what their expected numbers suggest even though save percentage continues to regress. Even though the mean difference in expected and actual goals has been positive in recent seasons, the difference is an indicator of team defense, so just because the difference is positive doesn't mean goalies have been able to bail teams out defensively. In fact, the regression in the mean save percentage might suggest that other factors may be more important defensively outside of goaltending.
+
+## Has Play Style Evolved Over Time?
+
+\noindent When players discuss what their approach to the game is, the bring up the phrase, "pucks in deep," which states the team's intention to get the puck deep in the opponent's zone to create chances through defensive zone takeaways, caused by pressuring the opponent to make a mistake. This question seeks to observe if that approach is still relevant today, and observe any changes in "old-school" metrics. To answer this question, we will use figures that observe changes in well-known approaches such as winning faceoffs, puck possession changes, hits, and other metrics. Some figures may include all situations (power play, penalty kill, 4v4, 3v3, etc.), and those will be mentioned within each figure.
+
+```{r, message = FALSE, echo = FALSE}
+#| label: fig-freezes
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the changes in the number of times the play stopped after an opponent’s shot (freezes) by season in all situations. From the 2009-2010 season to the 2018-2019 season, there was a progressive increase in freezes, but since the 2021-2022 season, the number of freezes has decreased rapidly.
+
+
+
+freezes <- combined_situations %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(freezeFor))
+
+
+ggplot(data = freezes, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Number of Freezes (All Situations)", subtitle = "by Season", x = "Season", y = "Freezes")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-faceoffs
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the changes in faceoffs won over different seasons. Before the 2019-2020 season, the number of faceoffs won progressively increased, but the mean number of faceoffs won has progressively decreased since. The drop in faceoffs might suggest that the game moves by quicker which means more action and less stoppages. 
+
+
+faceoffs <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(faceOffsWonFor))
+
+
+ggplot(data = faceoffs, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Faceoffs Won at Even Strength", subtitle = "by Season", x = "Season", y = "Faceoffs Won")
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-puck-possession
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the average time spent in the opponent's half of the ice. Overall, teams have been spending more time in the opponent's zone given the progressive increase in zone time from the 2009-2010 season to the 2018-2019 season, a trend that continued into the 2023-2024 season, but has seen a drop-off in average zone time in this recent season. 
+
+
+puck_possession <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(playContinuedInZoneFor))
+
+ggplot(data = puck_possession, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Time Spent in the Opponent's Zone at Even Strength", subtitle = "by Season", x = "Season", y = "Time Spent in the Opponent's Zone")
+
+```
+
+```{r, message = FALSE, echo = FALSE}
+#| label: fig-takeaways
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This line graph shows the mean number of takeaways at even strength by season. Before the pandemic-affected season in 2019-2020, teams were able to generate more takeaways, but that trend has slightly decreased since then to which the number of takeaways plateued this past season. The plateau in takeaways may mean that teams pride themselves on puck possession instead of being on the forecheck, or teams have done a better job of dealing with the pressure of the opponent's forecheck. 
+
+
+
+takeaways <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(takeawaysFor))
+
+
+ggplot(data = takeaways, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Takeaways For at Even Strength", subtitle = "by Season", x = "Season", y = "Takeaways")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-rebounds
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the mean percentage of goals scored via rebounds. Since the 2009-2010 season, there has been an overall regression in the percentage in goals scored by rebounds, signifying that teams are less reliant on rebound goals for offense. 
+
+
+
+rebounds <- combined_situations %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(reboundGoalPercentage))
+
+ggplot(data = rebounds, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Percentage of Goals Scored via Rebound (All Situations)", subtitle = "by Season", x = "Season", y = "Percentage")
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+#| label: fig-hits
+#| fig-pos: H
+#| fig-cap-location: bottom
+#| fig-cap: This is a line graph showing the average number of hits thrown by teams at even strength. As seen in the graph, there aren't any long-term changes in hits thrown, which signifies that hits are a part of the game that will be the case regardless of the evolution of hockey. 
+
+
+hits <- data5v5 %>% 
+  group_by(season) %>% 
+  summarise(mean_value = mean(hitsFor))
+
+
+ggplot(data = hits, aes(x = season, y = mean_value)) + geom_point() + geom_line() + labs(title = "Hits at Even Strength", subtitle = "by Season", x = "Season", y = "Hits")
+```
+
+\noindent In terms of game flow, @fig-freezes suggests that the games are more free-flowing with few stoppages. The decrease in faceoffs won between the 2018-2019 season and the 2021-2022 season in @fig-faceoffs suggests that there have been less stoppages in recent seasons, which may indicate that winning faceoffs have become marginally less important due to the lack of stoppages. However, @fig-puck-possession suggests that teams have spent more time in their opponents' end of the ice, which indicates that teams have been able generate offense by staying in their opponents' zone more often. Teams also pride themselves on puck possession as evidenced in @fig-takeaways, which shows that the number of takeaways has plateaued this past season, which suggests that either teams are better equipped to deal with the opponent's forecheck, or teams don't rely too much on gaining possession in the opponent's zone. Another change that has occurred in hockey is the decreasing reliance on rebound goals as seen in @fig-rebounds. That may signify the increase in skill in the game as teams don't need to rely on grimey goals as much as they can score in different ways given the skill of today's players. @fig-hits suggests that no matter how much the game evolves, hits will always be a part of hockey as seen by the unclear trends of the number of hits thrown in each season.
+
+## Discussion
+
+There are many factors that have contributed to those who follow hockey to believe that there is no better time to be a hockey fan. This paper sought to dissect how the game has changed using a mix of advanced metrics and raw numbers to observe how the game has changed in a 15-year period.
+
+Offensively, teams have been able to create more chances evident by the progressive increase in the mean number of expected goals for per season, high danger shots, and shot attempts. One interesting thing to note that was evident in these three figures is the spike between the the 2018-2019 and the 2021-2022 seasons. In terms of mean expected goals, the number jumped from a mean of around 165 to a total of 170, while the mean number of high danger shots for jumped from around 130 to 140 shots. The spike in both figures might be correlated to the change in the offside rule mentioned in the introduction, which encouraged offense by allowing players to enter the zone with more speed as they don't have to think about dragging their skate on the ice to enter the zone. However, despite the increase in shot attempts, less of those shots have been on target evident by the decrease in shots on target in recent seasons. The decrease in shots on target might suggest two things. One, players have tried too hard to shoot the perfect shot, which may contribute to players missing the net more often. Or, opposing teams have done a better job of blocking shots/ensuring the shots don't reach the net. To summarize, teams and players have been able to generate more quality chances and opportunities to score, which may have enabled players to try harder for the "perfect shot," which may have contributed to less shots being on target.
+
+Defensively, the NHL's desire for more offense has unsurprisingly, made defending more difficult. Since the implementation of the new offside rule, teams have conceded more chances evident in the mean opponent expected goals, with the peak coming during the 2022-2023 season. Since that season, the average expected goals conceded against has dropped slightly, but overall, it has become way more difficult to defend. This notion is also supported by the mean number of high danger shots against at even strength with the massive spike in high danger shots coming after the 2021-2022 season. Given the volume of chances that teams concede along with the uptick in offense, no lead is safe in today's NHL, which makes games very exciting because games can change quickly given the amount of offense currently in the NHL. Even though the expected goals numbers and the number of high danger shots conceded, it has not affected the teams' discipline defensively. In fact, the mean number of penalties taken by the teams has progressively decreased since the 2009-2010 season. This suggests that either the referees have encouraged a more free-flowing game by calling less penalties, or this figure may suggest that fighting in the NHL has declined in recent years. Both can be true, but it's difficult to determine. Another example of how the uptick in offense hasn't affected teams' discipline is the mean number of defensive zone giveaways. Since the new offside rule was implemented, the number of defensive zone giveaways has decreased, suggesting that teams have been more careful with the puck. However, this past season saw a massive uptick in defensive zone giveaways. This suggests either teams are taking more risks in their own zone, or opposing teams are forcing more turnovers through their skating and their speed. It's difficult to determine through this figure alone. In summary, today's game is tough for defensemen as evidenced by the progressive increase in expected goals against and the number of high danger shots conceded, but in terms of discipline, it's not wild to suggest that teams have become more disciplined given the number of penalties taken by teams has declined in recent years and the number of defensive zone giveaways decreasing. However, given the uptick in defensive zone giveaways this past season, it might suggest that teams have decided to take more risks, which may lead to a more chaotic game moving forward.
+
+For goaltenders, goaltending in the NHL has never been more difficult. The average save percentage in the league is below 90%, which has typically been the standard for goalies. Now, given the overall spike in offense in the league, the increased volume of high danger chances, and changes made to the game that cater to offense, it's no surprise that league-wide save percentage has decreased. The decrease in mean save percentage paired with the spike in offensive numbers means that ability of goalies to steal games for the team has diminished. Obviously, there are still elite goaltenders in the NHL, but heavily relying on the goaltender to bail the team out defensively in today's game is unsustainable. Despite recent seasons showing that teams actually concede less than what they should expect, the regression in save percentage suggests that maybe other factors have contributed to why teams have been able to concede less than expected. One known factor that might have been a reason why teams are conceding less than expected is the fact that in recent seasons, there have been less shots on target despite the general increase in shot attempts and high danger opportunities. Even though the difference in expected goals and actual goals conceded might be an indirect representation of goalies, it's complicated to use this metric to interpret goalie performance. Individual goalie performance is a better way to interpret goalie performance. One thing is clear though: goaltending has never been more difficult and shouldn't be heavily relied on for team success.
+
+Stylistically, the game has flowed more given the progressive decrease in puck freezes and faceoffs won. For teams who pride themselves on puck possession, teams may value winning the faceoff as a way to mesh with the identity of a puck possession team, but the decrease in the number of faceoffs won may suggest that there have been less opportunities to establish puck possession. The progressive decrease in both freezes and faceoffs won suggest that there have been less opportunities to establish puck possession given that the number of opportunities to slow down the game, which might suggest that winning faceoffs have progressively become less important. In terms of the teams' approach to the game, teams are spending more time in the offensive zone, which along with the uptick in offense, it suggests that teams are more focused on keeping the puck in the opponent's zone to generate chances, which might be against the notion that teams are more reliant on scoring in transition or on odd-man rushes. From the takeaways graph, it suggests that either teams have become less reliant on forechecking to create chances given the decline in the number of takeaways, but the trend in takeaways is opposite the trend in giveaways, which might mean that teams have become more opportunistic on the forecheck rather than basing their identity on forechecking. Teams have been also less on their goals coming from rebounds as evident by the percentage of goals scored via a rebound. This might suggest the increase in skill in the NHL today. Since most teams are so skilled, they don't need to be reliant on scoring from rebounds; instead, they can use their skill to get into better positions to score.
+
+Even though a lot can be interpreted from these line charts, there are some factors that may also go against these interpretations. In terms of team play style, it's very difficult to generalize team identities from line charts alone that use means from other team identities. No teams play the same way, so it's difficult to generalize how the game has evolved from using line charts alone. Team identities are more based on player personnel rather than what the league is moving toward. Also, there is the danger of outliers. Since means are not resistant to outliers, the numbers may be swayed by really bad teams or really good teams. Numbers in the 2016-2017 NHL season might be weighed down by the fact that the worst team in the league was historically bad (2016-2017 Colorado Avalanche (48 pts)), or numbers in the 2018-2019 season or the 2022-2023 season might be inflated by the fact that the best teams in those respective seasons had historically good seasons (2018-2019 Tampa Bay Lighting (128 pts), 2022-2023 Boston Bruins (135 pts)). Despite this concern, I feel comfortable using means because in any sports league, there are going to be bad teams and there are going to be good teams, and since teams like the Lightning, Bruins, and Avalanche come few and far between, I don't believe it will make too much of a difference in terms of how much outliers can affect mean totals. Another concern is the use of the COVID-19 paused 2019-2020 season in the data set. The use of the data might make the line graphs more difficult to interpret; thus it would be better if the data wasn't included, but I thought that 70 games were enough to make the data somewhat useable, but it might affect interpretation. Another concern is that some of these numbers are vague in terms of how the data is collected. For example, takeaways for doesn't describe where the takeaways take place. Do they take place in the offensive zone? Or do takeaways apply everywhere on the ice? Also, some of these numbers may be unclear or not specific enough. The penalties number also includes times in the game where 10 minute misconducts are given because after every whistle, there is a scrum after the play. So one potential thing that could be done is to exclude all the fighting majors and 10 minute misconduct penalties to get a better gauge of how disciplined teams are.
+
+In terms of trying to identify future changes in the game moving forward, individualized player data could also be used to further observe changes in how the game has played or how players have gotten better over time. That might be a better indicator to dissect how players have become more skilled over using team data. Using player data might be a more precise measure for certain questions regarding topics like goaltending or team defense, to which team data may not be the best way to answer those questions, especially goaltending. Another breakthrough in hockey technology that might be used to help track changes in the game is the NHL's introduction of NHL Edge, which utilizes puck tracking and player movement technology to give fans a unique perspective on player performance using metrics such as skate speed, shot speed, 20+ mph bursts, and player tendencies such as where on the ice they tend to shoot the puck and where on the ice they typically score from. Also, I would like to use this data to see what certain metrics give teams success in the regular season, and if those metrics still matter in the postseason, to not only see if a team's play style can successfully carryover into the postseason, but how playoff hockey affects the overall game flow and quality of play. Postseason hockey is the best hockey in my opinion, so it would be interesting to see how the game flow and play style change in a postseason environment.
+
+## Conclusion
+
+When looking back in how the NHL has evolved, a combination of rule changes, innovation in equipment, and infusion of skill has led to a league that produces high-octane offensive hockey. Teams are creating more chances, more dangerous chances, and have become more efficient in terms of their offensive output. When one decides to watch or go to a hockey game, they will see that the game is moving faster, become more unpredictable, and overall a compelling watch that keeps them on the edge of their seat. The game has never been in a better spot, which makes this era of hockey the best time to be a hockey fan.
+
+## References
+
+\noindent Bouthillier, C. (2016, June 18). The Evolution of Hockey: How the NHL Has Grown Over the Years. Bleacher Report; Bleacher Report. https://bleacherreport.com/articles/46151-the-evolution-of-hockey-how-the-nhl-has-grown-over-the-years
+
+
+\noindent The Evolution of Ice Hockey Equipment: From Wood Sticks to Carbon Fiber \| WBS Penguins. (2024, June 27). WBS Penguins. https://www.wbspenguins.com/blog/the-evolution-of-ice-hockey-equipment/
+
+
+
+\noindent Penguins, W. B. S. (2024, February 2). The Impact of Analytics on Modern Ice Hockey: How Data is Changing the Game. WBS Penguins. https://www.wbspenguins.com/blog/the-impact-of-analytics-on-modern-ice-hockey-how-data-is-changing-the-game/
+
+
+
+\noindent Tanner, P. (n.d.). MoneyPuck Hockey Dataset \[Dataset\]. moneypuck.com. https://moneypuck.com/data.htm
